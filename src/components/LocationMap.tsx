@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 import { LatLng } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { toast } from 'sonner';
 import { GeolocationService } from '@/services/geolocation.service';
 import { MapPin } from 'lucide-react';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 // Fix the icon issue in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
