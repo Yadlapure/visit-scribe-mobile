@@ -1,5 +1,5 @@
 
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capacitor/camera';
 
 export class CameraService {
   static async takeSelfie(): Promise<string> {
@@ -9,7 +9,7 @@ export class CameraService {
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Camera,
-        direction: 'front'
+        direction: CameraDirection.Front
       });
       
       return image.dataUrl || '';

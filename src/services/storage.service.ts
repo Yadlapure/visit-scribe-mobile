@@ -1,5 +1,5 @@
 
-import { Storage } from '@capacitor/storage';
+import { Preferences } from '@capacitor/preferences';
 import { Visit, Patient, User } from '../types';
 
 export class StorageService {
@@ -9,12 +9,12 @@ export class StorageService {
 
   // Visits
   static async getVisits(): Promise<Visit[]> {
-    const { value } = await Storage.get({ key: this.VISITS_KEY });
+    const { value } = await Preferences.get({ key: this.VISITS_KEY });
     return value ? JSON.parse(value) : [];
   }
 
   static async saveVisits(visits: Visit[]): Promise<void> {
-    await Storage.set({
+    await Preferences.set({
       key: this.VISITS_KEY,
       value: JSON.stringify(visits)
     });
@@ -40,12 +40,12 @@ export class StorageService {
 
   // Patients
   static async getPatients(): Promise<Patient[]> {
-    const { value } = await Storage.get({ key: this.PATIENTS_KEY });
+    const { value } = await Preferences.get({ key: this.PATIENTS_KEY });
     return value ? JSON.parse(value) : [];
   }
 
   static async savePatients(patients: Patient[]): Promise<void> {
-    await Storage.set({
+    await Preferences.set({
       key: this.PATIENTS_KEY,
       value: JSON.stringify(patients)
     });
@@ -58,12 +58,12 @@ export class StorageService {
 
   // User
   static async getCurrentUser(): Promise<User | null> {
-    const { value } = await Storage.get({ key: this.CURRENT_USER_KEY });
+    const { value } = await Preferences.get({ key: this.CURRENT_USER_KEY });
     return value ? JSON.parse(value) : null;
   }
 
   static async saveCurrentUser(user: User): Promise<void> {
-    await Storage.set({
+    await Preferences.set({
       key: this.CURRENT_USER_KEY,
       value: JSON.stringify(user)
     });
