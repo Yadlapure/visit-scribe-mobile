@@ -9,6 +9,7 @@ import PatientDetail from "./pages/PatientDetail";
 import VisitDetail from "./pages/VisitDetail";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const App = () => {
   // Initialize QueryClient inside the component
@@ -25,6 +26,7 @@ const App = () => {
             <Route path="/patients/:id" element={<PatientDetail />} />
             <Route path="/visit/:id" element={<VisitDetail />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

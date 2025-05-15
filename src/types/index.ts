@@ -1,4 +1,5 @@
 
+
 export interface LatLng {
   latitude: number;
   longitude: number;
@@ -42,5 +43,8 @@ export interface Visit {
 export interface User {
   id: string;
   name: string;
-  role: 'practitioner';
+  role: 'client' | 'practitioner' | 'admin';
+  email?: string;
+  status?: 'active' | 'inactive';
 }
+
