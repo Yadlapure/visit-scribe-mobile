@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { StorageService } from '@/services/storage.service';
-import { GeolocationService } from '@/services/geolocation.service';
 import { Visit, Patient, VisitStatus, Vitals, LatLng } from '@/types';
 import Header from '@/components/Header';
 import VisitStatusCard from '@/components/VisitStatusCard';
@@ -19,7 +18,7 @@ import {
   TabsList, 
   TabsTrigger 
 } from '@/components/ui/tabs';
-import { Clock, User, Stethoscope, FileText } from 'lucide-react';
+import { FaClock, FaUserAlt, FaStethoscope, FaFileAlt } from 'react-icons/fa';
 
 const VisitDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -317,10 +316,29 @@ const VisitDetail = () => {
   const isCheckOutReady = visit.status === VisitStatus.IN && outLocationCaptured && outSelfieCaptured;
   
   // Check visit status to show appropriate content
-  const showCheckInContent = visit.status === VisitStatus.PENDING || visit.status === VisitStatus.COMPLETED;
+  const showCheckInContent = true; // Always show
   const showVitalsContent = visit.status === VisitStatus.IN || visit.status === VisitStatus.COMPLETED;
   const showCheckOutContent = visit.status === VisitStatus.IN || visit.status === VisitStatus.COMPLETED;
   const isVisitComplete = visit.status === VisitStatus.COMPLETED;
+  
+  // Determine which tabs are enabled
+  const isAssessmentTabEnabled = inLocationCaptured && inSelfieCaptured && 
+    (visit.status === VisitStatus.IN || visit.status === VisitStatus.COMPLETED);
+  const isCheckOutTabEnabled = isAssessmentTabEnabled && vitalsCaptured && 
+    (visit.status === VisitStatus.IN || visit.status === VisitStatus.COMPLETED);
+
+  const handleTabChange = (value: string) => {
+    // Only allow tab changes if the conditions are met
+    if (value === 'assessment' && !isAssessmentTabEnabled) {
+      toast.error('Complete check-in first');
+      return;
+    }
+    if (value === 'check-out' && !isCheckOutTabEnabled) {
+      toast.error('Complete assessment first');
+      return;
+    }
+    setActiveTab(value);
+  };
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 pb-20">
@@ -329,18 +347,26 @@ const VisitDetail = () => {
       <div className="p-4 max-w-md mx-auto">
         <VisitStatusCard visit={visit} />
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
           <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="check-in" className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
+              <FaClock className="h-4 w-4" />
               <span className="hidden sm:inline">Check In</span>
             </TabsTrigger>
-            <TabsTrigger value="assessment" className="flex items-center gap-1">
-              <Stethoscope className="h-4 w-4" />
+            <TabsTrigger 
+              value="assessment" 
+              className="flex items-center gap-1"
+              disabled={!isAssessmentTabEnabled}
+            >
+              <FaStethoscope className="h-4 w-4" />
               <span className="hidden sm:inline">Assessment</span>
             </TabsTrigger>
-            <TabsTrigger value="check-out" className="flex items-center gap-1">
-              <FileText className="h-4 w-4" />
+            <TabsTrigger 
+              value="check-out" 
+              className="flex items-center gap-1"
+              disabled={!isCheckOutTabEnabled}
+            >
+              <FaFileAlt className="h-4 w-4" />
               <span className="hidden sm:inline">Check Out</span>
             </TabsTrigger>
           </TabsList>
@@ -356,12 +382,14 @@ const VisitDetail = () => {
                   disabled={visit.status !== VisitStatus.PENDING}
                 />
                 
-                <SelfieCapture 
-                  title="Check-In Verification"
-                  onCapture={handleInSelfieCapture}
-                  existingImage={visit.inSelfie}
-                  disabled={visit.status !== VisitStatus.PENDING}
-                />
+                {inLocationCaptured && (
+                  <SelfieCapture 
+                    title="Check-In Verification"
+                    onCapture={handleInSelfieCapture}
+                    existingImage={visit.inSelfie}
+                    disabled={visit.status !== VisitStatus.PENDING}
+                  />
+                )}
                 
                 {isCheckInReady && (
                   <Button 
@@ -408,12 +436,14 @@ const VisitDetail = () => {
                   disabled={isVisitComplete}
                 />
                 
-                <SelfieCapture 
-                  title="Check-Out Verification"
-                  onCapture={handleOutSelfieCapture}
-                  existingImage={visit.outSelfie}
-                  disabled={isVisitComplete}
-                />
+                {outLocationCaptured && (
+                  <SelfieCapture 
+                    title="Check-Out Verification"
+                    onCapture={handleOutSelfieCapture}
+                    existingImage={visit.outSelfie}
+                    disabled={isVisitComplete}
+                  />
+                )}
                 
                 {isCheckOutReady && !isVisitComplete && (
                   <Button 

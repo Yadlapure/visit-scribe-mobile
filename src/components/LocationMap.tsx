@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { GeolocationService } from '@/services/geolocation.service';
-import { MapPin } from 'lucide-react';
+import { FaMapMarkerAlt } from 'react-icons/fa';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -156,7 +156,7 @@ const LocationMap: React.FC<LocationMapProps> = ({
             className="w-full flex items-center justify-center" 
             disabled={loading || disabled}
           >
-            <MapPin className="mr-2 h-4 w-4" />
+            <FaMapMarkerAlt className="mr-2 h-4 w-4" />
             {loading ? 'Getting Location...' : 'Update My Location'}
           </Button>
           

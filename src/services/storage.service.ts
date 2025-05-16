@@ -1,136 +1,150 @@
-
 import { Preferences } from '@capacitor/preferences';
-import { Visit, Patient, User, VisitStatus } from '../types';
-import { v4 as uuidv4 } from 'uuid';
+import { Patient, Visit } from '../types';
 
 export class StorageService {
-  private static readonly VISITS_KEY = 'visits';
-  private static readonly PATIENTS_KEY = 'patients';
-  private static readonly CURRENT_USER_KEY = 'currentUser';
+  private static async getData(key: string): Promise<any> {
+    const { value } = await Preferences.get({ key });
+    try {
+      return value ? JSON.parse(value) : null;
+    } catch (error) {
+      console.error(`Error parsing data for key ${key}:`, error);
+      return null;
+    }
+  }
 
-  // Visits
+  private static async setData(key: string, data: any): Promise<void> {
+    await Preferences.set({ key, value: JSON.stringify(data) });
+  }
+
+  // Patient management
+  static async getPatients(): Promise<Patient[]> {
+    const patients = await this.getData('patients');
+    return patients || [];
+  }
+
+  static async savePatient(patient: Patient): Promise<void> {
+    const patients = await this.getPatients();
+    const existingIndex = patients.findIndex(p => p.id === patient.id);
+
+    if (existingIndex > -1) {
+      patients[existingIndex] = patient;
+    } else {
+      patients.push(patient);
+    }
+
+    await this.setData('patients', patients);
+  }
+
+  static async getPatient(id: string): Promise<Patient | null> {
+    const patients = await this.getPatients();
+    return patients.find(patient => patient.id === id) || null;
+  }
+
+  // Visit management
   static async getVisits(): Promise<Visit[]> {
-    const { value } = await Preferences.get({ key: this.VISITS_KEY });
-    return value ? JSON.parse(value) : [];
-  }
-
-  static async saveVisits(visits: Visit[]): Promise<void> {
-    await Preferences.set({
-      key: this.VISITS_KEY,
-      value: JSON.stringify(visits)
-    });
-  }
-
-  static async getVisit(id: string): Promise<Visit | undefined> {
-    const visits = await this.getVisits();
-    return visits.find(visit => visit.id === id);
+    const visits = await this.getData('visits');
+    return visits || [];
   }
 
   static async saveVisit(visit: Visit): Promise<void> {
     const visits = await this.getVisits();
-    const index = visits.findIndex(v => v.id === visit.id);
-    
-    if (index !== -1) {
-      visits[index] = visit;
+    const existingIndex = visits.findIndex(v => v.id === visit.id);
+
+    if (existingIndex > -1) {
+      visits[existingIndex] = visit;
     } else {
       visits.push(visit);
     }
-    
-    await this.saveVisits(visits);
+
+    await this.setData('visits', visits);
   }
 
-  // Patients
-  static async getPatients(): Promise<Patient[]> {
-    const { value } = await Preferences.get({ key: this.PATIENTS_KEY });
-    return value ? JSON.parse(value) : [];
+  static async getVisit(id: string): Promise<Visit | null> {
+    const visits = await this.getVisits();
+    return visits.find(visit => visit.id === id) || null;
   }
 
-  static async savePatients(patients: Patient[]): Promise<void> {
-    await Preferences.set({
-      key: this.PATIENTS_KEY,
-      value: JSON.stringify(patients)
-    });
+  // User management
+  static async getUsers(): Promise<any[]> {
+    const users = await this.getData('users');
+    return users || [];
   }
 
-  static async getPatient(id: string): Promise<Patient | undefined> {
-    const patients = await this.getPatients();
-    return patients.find(patient => patient.id === id);
+  static async getCurrentUser(): Promise<any | null> {
+    const currentUser = await this.getData('currentUser');
+    return currentUser || null;
   }
 
-  // User
-  static async getCurrentUser(): Promise<User | null> {
-    const { value } = await Preferences.get({ key: this.CURRENT_USER_KEY });
-    return value ? JSON.parse(value) : null;
+  static async setCurrentUser(user: any): Promise<void> {
+    await this.setData('currentUser', user);
   }
 
-  static async saveCurrentUser(user: User): Promise<void> {
-    await Preferences.set({
-      key: this.CURRENT_USER_KEY,
-      value: JSON.stringify(user)
-    });
+  static async clearCurrentUser(): Promise<void> {
+    await this.setData('currentUser', null);
   }
 
-  // Initialize demo data
+  // Demo data initialization
   static async initializeDemoData(): Promise<void> {
-    // Get today's date in YYYY-MM-DD format
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Check if patients already exist
-    const existingPatients = await this.getPatients();
-    if (existingPatients.length === 0) {
-      // Create a default user if it doesn't exist
-      const currentUser = await this.getCurrentUser();
-      const userId = currentUser?.id || '1';
-      
-      // Sample patients
-      const patients: Patient[] = [
+    // Initialize demo patients if they don't exist
+    let patients = await this.getPatients();
+    if (!patients || patients.length === 0) {
+      const demoPatients: Patient[] = [
         {
-          id: '1',
-          name: 'Jane Smith',
-          address: '123 Main St, Anytown',
-          coordinates: { latitude: 37.7749, longitude: -122.4194 },
-          assignedDate: today, // Assigned for today
-          assignedTo: userId
+          id: "patient-1",
+          name: "John Doe",
+          address: "123 Main St, Anytown",
+          coordinates: { latitude: 34.0522, longitude: -118.2437 },
+          assignedTo: "user-2",
+          assignedDate: new Date().toISOString().split('T')[0]
         },
         {
-          id: '2',
-          name: 'Robert Johnson',
-          address: '456 Oak Ave, Somewhere',
-          coordinates: { latitude: 37.7831, longitude: -122.4039 }
-          // Not assigned
-        },
-        {
-          id: '3',
-          name: 'Maria Garcia',
-          address: '789 Pine St, Elsewhere',
-          coordinates: { latitude: 37.7694, longitude: -122.4269 }
-          // Not assigned
+          id: "patient-2",
+          name: "Jane Smith",
+          address: "456 Elm St, Anytown",
+          coordinates: { latitude: 34.0522, longitude: -118.2437 },
+          assignedTo: "user-2",
+          assignedDate: new Date().toISOString().split('T')[0]
         }
       ];
-      await this.savePatients(patients);
-      
-      // Create a sample pending visit for today's patient
-      const visits = await this.getVisits();
-      if (visits.length === 0) {
-        const todayVisit: Visit = {
-          id: uuidv4(),
-          patientId: '1', // Jane Smith
-          status: VisitStatus.PENDING,
-          visitDate: today
-        };
-        await this.saveVisit(todayVisit);
-      }
+      await this.setData('patients', demoPatients);
+      patients = demoPatients;
     }
 
-    // Create a default user if it doesn't exist
-    const currentUser = await this.getCurrentUser();
-    if (!currentUser) {
-      const user: User = {
-        id: '1',
-        name: 'Dr. Thomas Walker',
-        role: 'practitioner'
-      };
-      await this.saveCurrentUser(user);
+    // Initialize demo visits if they don't exist
+    let visits = await this.getVisits();
+    if (!visits || visits.length === 0) {
+      const today = new Date().toISOString().split('T')[0];
+      const demoVisits: Visit[] = [
+        {
+          id: "visit-1",
+          patientId: patients[0].id,
+          visitDate: today,
+          status: "pending"
+        }
+      ];
+      await this.setData('visits', demoVisits);
+    }
+
+    // Initialize demo users if they don't exist
+    const users = await this.getUsers();
+    if (!users || users.length === 0) {
+      const demoUsers = [
+        {
+          id: "user-1",
+          name: "Admin User",
+          email: "admin@example.com",
+          password: "admin123",
+          role: "admin"
+        },
+        {
+          id: "user-2",
+          name: "Dr. Smith",
+          email: "doctor@example.com",
+          password: "doctor123",
+          role: "practitioner"
+        }
+      ];
+      await this.setData('users', demoUsers);
     }
   }
 }

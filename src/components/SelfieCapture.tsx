@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CameraService } from '@/services/camera.service';
 import { toast } from 'sonner';
-import { Camera } from 'lucide-react';
+import { FaCamera } from 'react-icons/fa';
 
 interface SelfieCaptureProps {
   title: string;
@@ -67,7 +67,7 @@ const SelfieCapture: React.FC<SelfieCaptureProps> = ({
         ) : (
           <div className="space-y-4">
             <div className="flex items-center justify-center h-[250px] w-full bg-slate-50 rounded-lg">
-              <Camera className="h-16 w-16 text-slate-300" />
+              <FaCamera className="h-16 w-16 text-slate-300" />
             </div>
             
             <Button 

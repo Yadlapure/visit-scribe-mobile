@@ -6,15 +6,16 @@ import Header from '@/components/Header';
 import TodayPatientCard from '@/components/TodayPatientCard';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { User, Calendar, Shield } from 'lucide-react';
+import { FaUser, FaCalendar, FaShieldAlt } from 'react-icons/fa';
 import AdminLink from '@/components/AdminLink';
+import { useAuth } from '@/context/AuthContext';
 
 const Index = () => {
   const [todayPatient, setTodayPatient] = useState<Patient | null>(null);
   const [activeVisit, setActiveVisit] = useState<Visit | null>(null);
-  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Load data
   useEffect(() => {
@@ -23,36 +24,35 @@ const Index = () => {
         // Initialize demo data
         await StorageService.initializeDemoData();
         
-        // Load patients, visits and user
+        // Load patients and visits
         const patientsData = await StorageService.getPatients();
         const visitsData = await StorageService.getVisits();
-        const userData = await StorageService.getCurrentUser();
         
         // Get today's date in YYYY-MM-DD format
         const today = new Date().toISOString().split('T')[0];
         
-        // Find today's assigned patient for current practitioner
-        const todaysPatient = patientsData.find(patient => 
-          patient.assignedDate === today && 
-          patient.assignedTo === userData?.id
-        );
-        
-        if (todaysPatient) {
-          setTodayPatient(todaysPatient);
-          
-          // Find active visit for this patient
-          const patientVisit = visitsData.find(visit => 
-            visit.patientId === todaysPatient.id && 
-            visit.visitDate === today && 
-            (visit.status === VisitStatus.PENDING || visit.status === VisitStatus.IN)
+        if (user && user.role === 'practitioner') {
+          // Find today's assigned patient for current practitioner
+          const todaysPatient = patientsData.find(patient => 
+            patient.assignedDate === today && 
+            patient.assignedTo === user.id
           );
           
-          if (patientVisit) {
-            setActiveVisit(patientVisit);
+          if (todaysPatient) {
+            setTodayPatient(todaysPatient);
+            
+            // Find active visit for this patient
+            const patientVisit = visitsData.find(visit => 
+              visit.patientId === todaysPatient.id && 
+              visit.visitDate === today && 
+              (visit.status === VisitStatus.PENDING || visit.status === VisitStatus.IN)
+            );
+            
+            if (patientVisit) {
+              setActiveVisit(patientVisit);
+            }
           }
         }
-        
-        setUser(userData);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -61,7 +61,7 @@ const Index = () => {
     };
     
     loadData();
-  }, []);
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
@@ -75,7 +75,7 @@ const Index = () => {
               size="icon"
               onClick={() => navigate('/profile')}
             >
-              <User className="h-5 w-5" />
+              <FaUser className="h-5 w-5" />
             </Button>
           </div>
         } 
@@ -91,7 +91,7 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-medium">Today's Visit</h2>
               <div className="flex items-center text-sm text-healthcare-gray">
-                <Calendar className="h-4 w-4 mr-1" />
+                <FaCalendar className="h-4 w-4 mr-1" />
                 <span>{new Date().toLocaleDateString()}</span>
               </div>
             </div>
@@ -104,7 +104,7 @@ const Index = () => {
             ) : user?.role === 'practitioner' ? (
               <div className="text-center p-8 bg-white rounded-lg shadow-sm border border-healthcare-lightGray">
                 <div className="mb-4 text-healthcare-gray">
-                  <Calendar className="mx-auto h-12 w-12 text-healthcare-primary opacity-70" />
+                  <FaCalendar className="mx-auto h-12 w-12 text-healthcare-primary opacity-70" />
                 </div>
                 <h3 className="text-lg font-medium mb-2">No Patient Assigned Today</h3>
                 <p className="text-healthcare-gray mb-6">
@@ -114,7 +114,7 @@ const Index = () => {
             ) : user?.role === 'admin' ? (
               <div className="text-center p-8 bg-white rounded-lg shadow-sm border border-healthcare-lightGray">
                 <div className="mb-4 text-healthcare-gray">
-                  <Shield className="mx-auto h-12 w-12 text-healthcare-primary opacity-70" />
+                  <FaShieldAlt className="mx-auto h-12 w-12 text-healthcare-primary opacity-70" />
                 </div>
                 <h3 className="text-lg font-medium mb-2">Admin Dashboard</h3>
                 <p className="text-healthcare-gray mb-6">

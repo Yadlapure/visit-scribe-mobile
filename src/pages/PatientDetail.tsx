@@ -6,7 +6,7 @@ import { Patient, Visit, VisitStatus } from '@/types';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Clock } from 'lucide-react';
+import { FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 import LocationMap from '@/components/LocationMap';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -101,7 +101,7 @@ const PatientDetail = () => {
           </CardHeader>
           <CardContent className="p-4">
             <div className="flex items-center text-healthcare-gray mb-4">
-              <MapPin className="h-4 w-4 mr-1" />
+              <FaMapMarkerAlt className="h-4 w-4 mr-1" />
               <span className="text-sm">{patient.address}</span>
             </div>
             
@@ -141,7 +141,7 @@ const PatientDetail = () => {
                   className="flex items-center justify-between border-b py-3 last:border-0"
                 >
                   <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-2 text-healthcare-gray" />
+                    <FaClock className="h-4 w-4 mr-2 text-healthcare-gray" />
                     <div>
                       <div className="text-sm">
                         {visit.startTime 

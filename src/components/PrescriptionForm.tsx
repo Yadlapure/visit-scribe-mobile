@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { CameraService } from '@/services/camera.service';
-import { Camera, Save, X } from 'lucide-react';
+import { FaCamera, FaSave, FaTimes } from 'react-icons/fa';
 import { toast } from 'sonner';
 
 interface PrescriptionFormProps {
@@ -92,7 +92,7 @@ const PrescriptionForm: React.FC<PrescriptionFormProps> = ({
                       className="absolute top-2 right-2 rounded-full w-8 h-8"
                       onClick={handleRemoveImage}
                     >
-                      <X className="h-4 w-4" />
+                      <FaTimes className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -102,7 +102,7 @@ const PrescriptionForm: React.FC<PrescriptionFormProps> = ({
                   className="w-full bg-healthcare-primary hover:bg-healthcare-primary/90 h-[100px] flex flex-col items-center justify-center"
                   disabled={loading || disabled}
                 >
-                  <Camera className="h-6 w-6 mb-2" />
+                  <FaCamera className="h-6 w-6 mb-2" />
                   {loading ? 'Capturing...' : 'Capture Prescription Image'}
                 </Button>
               )}
@@ -114,7 +114,7 @@ const PrescriptionForm: React.FC<PrescriptionFormProps> = ({
                 className="w-full bg-healthcare-success hover:bg-healthcare-success/90"
                 disabled={(!prescription && !prescriptionImage) || disabled}
               >
-                <Save className="h-4 w-4 mr-2" />
+                <FaSave className="h-4 w-4 mr-2" />
                 Save Prescription
               </Button>
             )}
@@ -146,7 +146,7 @@ const PrescriptionForm: React.FC<PrescriptionFormProps> = ({
                 className="w-full bg-healthcare-success hover:bg-healthcare-success/90"
                 disabled={!reportDetails || disabled}
               >
-                <Save className="h-4 w-4 mr-2" />
+                <FaSave className="h-4 w-4 mr-2" />
                 Save Report
               </Button>
             )}
