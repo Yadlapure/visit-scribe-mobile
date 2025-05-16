@@ -48,10 +48,14 @@ const PatientDetail = () => {
   const handleStartVisit = async () => {
     if (!patient) return;
     
+    // Get current date in YYYY-MM-DD format for visitDate
+    const today = new Date().toISOString().split('T')[0];
+    
     const newVisit: Visit = {
       id: uuidv4(),
       patientId: patient.id,
-      status: VisitStatus.PENDING
+      status: VisitStatus.PENDING,
+      visitDate: today // Add the required visitDate property
     };
     
     await StorageService.saveVisit(newVisit);
