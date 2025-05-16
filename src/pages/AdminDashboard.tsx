@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UsersTable } from '@/components/UsersTable';
+import { PatientAssignmentTable } from '@/components/PatientAssignmentTable';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
@@ -21,11 +22,25 @@ const AdminDashboard = () => {
     <div className="container py-10 max-w-7xl mx-auto">
       <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
       
-      <Tabs defaultValue="users" className="w-full">
+      <Tabs defaultValue="assignments" className="w-full">
         <TabsList className="mb-4">
+          <TabsTrigger value="assignments">Patient Assignments</TabsTrigger>
           <TabsTrigger value="users">Users Management</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="assignments">
+          <Card>
+            <CardHeader>
+              <CardTitle>Patient Assignments</CardTitle>
+              <CardDescription>Assign practitioners to patients for home visits</CardDescription>
+            </CardHeader>
+            
+            <CardContent>
+              <PatientAssignmentTable />
+            </CardContent>
+          </Card>
+        </TabsContent>
         
         <TabsContent value="users">
           <Card>
