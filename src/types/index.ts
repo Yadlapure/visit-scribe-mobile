@@ -1,5 +1,4 @@
 
-
 export interface LatLng {
   latitude: number;
   longitude: number;
@@ -10,6 +9,8 @@ export interface Patient {
   name: string;
   address: string;
   coordinates: LatLng;
+  assignedDate?: string; // Date when patient is assigned to practitioner
+  assignedTo?: string; // ID of practitioner assigned to this patient
 }
 
 export interface Vitals {
@@ -38,6 +39,10 @@ export interface Visit {
   inLocation?: LatLng;
   outLocation?: LatLng;
   vitals?: Vitals;
+  prescription?: string; // Text prescription
+  prescriptionImage?: string; // Base64 string of prescription image
+  reportDetails?: string; // Additional report details
+  visitDate: string; // Date of the visit
 }
 
 export interface User {
@@ -47,4 +52,3 @@ export interface User {
   email?: string;
   status?: 'active' | 'inactive';
 }
-

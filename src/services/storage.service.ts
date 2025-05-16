@@ -1,6 +1,7 @@
 
 import { Preferences } from '@capacitor/preferences';
-import { Visit, Patient, User } from '../types';
+import { Visit, Patient, User, VisitStatus } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 export class StorageService {
   private static readonly VISITS_KEY = 'visits';
@@ -71,31 +72,54 @@ export class StorageService {
 
   // Initialize demo data
   static async initializeDemoData(): Promise<void> {
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+    
     // Check if patients already exist
     const existingPatients = await this.getPatients();
     if (existingPatients.length === 0) {
+      // Create a default user if it doesn't exist
+      const currentUser = await this.getCurrentUser();
+      const userId = currentUser?.id || '1';
+      
       // Sample patients
       const patients: Patient[] = [
         {
           id: '1',
           name: 'Jane Smith',
           address: '123 Main St, Anytown',
-          coordinates: { latitude: 37.7749, longitude: -122.4194 }
+          coordinates: { latitude: 37.7749, longitude: -122.4194 },
+          assignedDate: today, // Assigned for today
+          assignedTo: userId
         },
         {
           id: '2',
           name: 'Robert Johnson',
           address: '456 Oak Ave, Somewhere',
           coordinates: { latitude: 37.7831, longitude: -122.4039 }
+          // Not assigned
         },
         {
           id: '3',
           name: 'Maria Garcia',
           address: '789 Pine St, Elsewhere',
           coordinates: { latitude: 37.7694, longitude: -122.4269 }
+          // Not assigned
         }
       ];
       await this.savePatients(patients);
+      
+      // Create a sample pending visit for today's patient
+      const visits = await this.getVisits();
+      if (visits.length === 0) {
+        const todayVisit: Visit = {
+          id: uuidv4(),
+          patientId: '1', // Jane Smith
+          status: VisitStatus.PENDING,
+          visitDate: today
+        };
+        await this.saveVisit(todayVisit);
+      }
     }
 
     // Create a default user if it doesn't exist

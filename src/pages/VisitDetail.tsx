@@ -9,9 +9,17 @@ import VisitStatusCard from '@/components/VisitStatusCard';
 import LocationMap from '@/components/LocationMap';
 import SelfieCapture from '@/components/SelfieCapture';
 import VitalsForm from '@/components/VitalsForm';
+import PrescriptionForm from '@/components/PrescriptionForm';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from '@/components/ui/tabs';
+import { Clock, User, Stethoscope, FileText } from 'lucide-react';
 
 const VisitDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,8 +33,10 @@ const VisitDetail = () => {
   const [inSelfieCaptured, setInSelfieCaptured] = useState(false);
   const [outSelfieCaptured, setOutSelfieCaptured] = useState(false);
   const [vitalsCaptured, setVitalsCaptured] = useState(false);
+  const [prescriptionCaptured, setPrescriptionCaptured] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [endVisitDialogOpen, setEndVisitDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('check-in');
   
   // Load visit data
   useEffect(() => {
@@ -52,6 +62,16 @@ const VisitDetail = () => {
         if (visitData.vitals) setVitalsCaptured(true);
         if (visitData.outLocation) setOutLocationCaptured(true);
         if (visitData.outSelfie) setOutSelfieCaptured(true);
+        if (visitData.prescription || visitData.prescriptionImage) setPrescriptionCaptured(true);
+        
+        // Set active tab based on visit status
+        if (visitData.status === VisitStatus.IN) {
+          setActiveTab('assessment');
+        } else if (visitData.status === VisitStatus.PENDING) {
+          setActiveTab('check-in');
+        } else if (visitData.status === VisitStatus.COMPLETED) {
+          setActiveTab('check-out');
+        }
         
         // Get patient data
         const patientData = await StorageService.getPatient(visitData.patientId);
@@ -133,6 +153,48 @@ const VisitDetail = () => {
     }
   };
   
+  // Handle prescription save
+  const handlePrescriptionSave = async (prescriptionText: string, prescriptionImage?: string) => {
+    if (!visit || !id) return;
+    
+    try {
+      const updatedVisit: Visit = {
+        ...visit,
+        prescription: prescriptionText,
+        prescriptionImage: prescriptionImage || visit.prescriptionImage
+      };
+      
+      await StorageService.saveVisit(updatedVisit);
+      setVisit(updatedVisit);
+      setPrescriptionCaptured(true);
+      
+      toast.success('Prescription information saved');
+    } catch (error) {
+      console.error('Error saving prescription:', error);
+      toast.error('Failed to save prescription');
+    }
+  };
+  
+  // Handle report details save
+  const handleReportDetailsSave = async (reportDetails: string) => {
+    if (!visit || !id) return;
+    
+    try {
+      const updatedVisit: Visit = {
+        ...visit,
+        reportDetails: reportDetails
+      };
+      
+      await StorageService.saveVisit(updatedVisit);
+      setVisit(updatedVisit);
+      
+      toast.success('Report details saved');
+    } catch (error) {
+      console.error('Error saving report details:', error);
+      toast.error('Failed to save report details');
+    }
+  };
+  
   // Handle location capture for check-out
   const handleOutLocationCapture = async (location: LatLng) => {
     if (!visit || !id) return;
@@ -189,6 +251,7 @@ const VisitDetail = () => {
       
       await StorageService.saveVisit(updatedVisit);
       setVisit(updatedVisit);
+      setActiveTab('assessment');
       
       toast.success('Check-in completed successfully!');
       setConfirmDialogOpen(false);
@@ -203,7 +266,7 @@ const VisitDetail = () => {
     if (!visit || !id) return;
     
     try {
-      // Update visit status to OUT
+      // Update visit status to COMPLETED
       const updatedVisit: Visit = {
         ...visit,
         status: VisitStatus.COMPLETED,
@@ -226,7 +289,7 @@ const VisitDetail = () => {
   
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
         <Header title="Visit Details" showBack={true} />
         <div className="flex justify-center items-center h-64">
           <div className="animate-pulse">Loading visit details...</div>
@@ -237,7 +300,7 @@ const VisitDetail = () => {
   
   if (!visit || !patient) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
         <Header title="Visit Not Found" showBack={true} />
         <div className="p-4 text-center">
           <p className="mb-4">The requested visit could not be found.</p>
@@ -254,90 +317,116 @@ const VisitDetail = () => {
   const isCheckOutReady = visit.status === VisitStatus.IN && outLocationCaptured && outSelfieCaptured;
   
   // Check visit status to show appropriate content
-  const showCheckInContent = visit.status === VisitStatus.PENDING;
-  const showVitalsContent = visit.status === VisitStatus.IN;
-  const showCheckOutContent = visit.status === VisitStatus.IN;
+  const showCheckInContent = visit.status === VisitStatus.PENDING || visit.status === VisitStatus.COMPLETED;
+  const showVitalsContent = visit.status === VisitStatus.IN || visit.status === VisitStatus.COMPLETED;
+  const showCheckOutContent = visit.status === VisitStatus.IN || visit.status === VisitStatus.COMPLETED;
   const isVisitComplete = visit.status === VisitStatus.COMPLETED;
   
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 pb-20">
       <Header title={`Visit: ${patient.name}`} showBack={true} />
       
       <div className="p-4 max-w-md mx-auto">
         <VisitStatusCard visit={visit} />
         
-        {/* Check In Section */}
-        {(showCheckInContent || isVisitComplete) && (
-          <div className="mb-6">
-            <h2 className="text-lg font-medium mb-3">Check In</h2>
-            
-            <LocationMap 
-              patientLocation={patient.coordinates}
-              userLocation={visit.inLocation}
-              onLocationCapture={handleInLocationCapture}
-              disabled={visit.status !== VisitStatus.PENDING}
-            />
-            
-            <SelfieCapture 
-              title="Check-In Verification"
-              onCapture={handleInSelfieCapture}
-              existingImage={visit.inSelfie}
-              disabled={visit.status !== VisitStatus.PENDING}
-            />
-            
-            {isCheckInReady && (
-              <Button 
-                className="w-full bg-healthcare-success hover:bg-healthcare-success/90"
-                onClick={() => setConfirmDialogOpen(true)}
-              >
-                Complete Check In
-              </Button>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="check-in" className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              <span className="hidden sm:inline">Check In</span>
+            </TabsTrigger>
+            <TabsTrigger value="assessment" className="flex items-center gap-1">
+              <Stethoscope className="h-4 w-4" />
+              <span className="hidden sm:inline">Assessment</span>
+            </TabsTrigger>
+            <TabsTrigger value="check-out" className="flex items-center gap-1">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Check Out</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Check In Tab */}
+          <TabsContent value="check-in" className="mt-4">
+            {(showCheckInContent) && (
+              <div className="space-y-4">
+                <LocationMap 
+                  patientLocation={patient.coordinates}
+                  userLocation={visit.inLocation}
+                  onLocationCapture={handleInLocationCapture}
+                  disabled={visit.status !== VisitStatus.PENDING}
+                />
+                
+                <SelfieCapture 
+                  title="Check-In Verification"
+                  onCapture={handleInSelfieCapture}
+                  existingImage={visit.inSelfie}
+                  disabled={visit.status !== VisitStatus.PENDING}
+                />
+                
+                {isCheckInReady && (
+                  <Button 
+                    className="w-full bg-healthcare-success hover:bg-healthcare-success/90 py-6"
+                    onClick={() => setConfirmDialogOpen(true)}
+                  >
+                    Complete Check In
+                  </Button>
+                )}
+              </div>
             )}
-          </div>
-        )}
-        
-        {/* Vitals Section */}
-        {(showVitalsContent || isVisitComplete) && (
-          <div className="mb-6">
-            <h2 className="text-lg font-medium mb-3">Patient Assessment</h2>
-            
-            <VitalsForm 
-              initialVitals={visit.vitals}
-              onSave={handleVitalsSave}
-              disabled={isVisitComplete}
-            />
-          </div>
-        )}
-        
-        {/* Check Out Section */}
-        {(showCheckOutContent || isVisitComplete) && (
-          <div className="mb-6">
-            <h2 className="text-lg font-medium mb-3">Check Out</h2>
-            
-            <LocationMap 
-              patientLocation={patient.coordinates}
-              userLocation={visit.outLocation}
-              onLocationCapture={handleOutLocationCapture}
-              disabled={isVisitComplete}
-            />
-            
-            <SelfieCapture 
-              title="Check-Out Verification"
-              onCapture={handleOutSelfieCapture}
-              existingImage={visit.outSelfie}
-              disabled={isVisitComplete}
-            />
-            
-            {isCheckOutReady && !isVisitComplete && (
-              <Button 
-                className="w-full bg-healthcare-success hover:bg-healthcare-success/90"
-                onClick={() => setEndVisitDialogOpen(true)}
-              >
-                Complete Visit
-              </Button>
+          </TabsContent>
+
+          {/* Assessment Tab */}
+          <TabsContent value="assessment" className="mt-4">
+            {(showVitalsContent) && (
+              <div className="space-y-4">
+                <VitalsForm 
+                  initialVitals={visit.vitals}
+                  onSave={handleVitalsSave}
+                  disabled={isVisitComplete}
+                />
+                
+                <PrescriptionForm
+                  initialPrescription={visit.prescription}
+                  initialImage={visit.prescriptionImage}
+                  initialReportDetails={visit.reportDetails}
+                  onPrescriptionSave={handlePrescriptionSave}
+                  onReportDetailsSave={handleReportDetailsSave}
+                  disabled={isVisitComplete}
+                />
+              </div>
             )}
-          </div>
-        )}
+          </TabsContent>
+
+          {/* Check Out Tab */}
+          <TabsContent value="check-out" className="mt-4">
+            {(showCheckOutContent) && (
+              <div className="space-y-4">
+                <LocationMap 
+                  patientLocation={patient.coordinates}
+                  userLocation={visit.outLocation}
+                  onLocationCapture={handleOutLocationCapture}
+                  disabled={isVisitComplete}
+                />
+                
+                <SelfieCapture 
+                  title="Check-Out Verification"
+                  onCapture={handleOutSelfieCapture}
+                  existingImage={visit.outSelfie}
+                  disabled={isVisitComplete}
+                />
+                
+                {isCheckOutReady && !isVisitComplete && (
+                  <Button 
+                    className="w-full bg-healthcare-success hover:bg-healthcare-success/90 py-6"
+                    onClick={() => setEndVisitDialogOpen(true)}
+                  >
+                    Complete Visit
+                  </Button>
+                )}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
       
       {/* Confirm Check In Dialog */}
