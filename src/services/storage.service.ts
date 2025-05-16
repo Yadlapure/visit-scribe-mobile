@@ -1,5 +1,6 @@
+
 import { Preferences } from '@capacitor/preferences';
-import { Patient, Visit } from '../types';
+import { Patient, Visit, VisitStatus } from '../types';
 
 export class StorageService {
   private static async getData(key: string): Promise<any> {
@@ -119,7 +120,7 @@ export class StorageService {
           id: "visit-1",
           patientId: patients[0].id,
           visitDate: today,
-          status: "pending"
+          status: VisitStatus.PENDING
         }
       ];
       await this.setData('visits', demoVisits);
@@ -142,6 +143,13 @@ export class StorageService {
           email: "doctor@example.com",
           password: "doctor123",
           role: "practitioner"
+        },
+        {
+          id: "user-3",
+          name: "Patient User",
+          email: "patient@example.com",
+          password: "patient123",
+          role: "client"
         }
       ];
       await this.setData('users', demoUsers);

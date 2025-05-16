@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { StorageService } from '@/services/storage.service';
 
-type UserRole = 'admin' | 'practitioner';
+type UserRole = 'admin' | 'practitioner' | 'client';
 
 interface User {
   id: string;

@@ -13,6 +13,7 @@ import VisitDetail from "./pages/VisitDetail";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
+import ClientDashboard from "./pages/ClientDashboard";
 
 const App = () => {
   // Initialize QueryClient inside the component
@@ -34,7 +35,23 @@ const App = () => {
                 path="/" 
                 element={
                   <ProtectedRoute>
+                    <Navigate to="/dashboard" replace />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
                     <Index />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/client" 
+                element={
+                  <ProtectedRoute allowedRoles={['client']}>
+                    <ClientDashboard />
                   </ProtectedRoute>
                 } 
               />
