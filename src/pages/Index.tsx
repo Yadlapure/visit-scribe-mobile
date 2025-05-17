@@ -16,6 +16,9 @@ const Index = () => {
       } else if (user.role === 'client') {
         navigate('/client');
       }
+    } else {
+      // If no user is logged in, redirect to login
+      navigate('/login');
     }
   }, [user, navigate]);
 

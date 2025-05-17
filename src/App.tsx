@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Index from "./pages/Index";
 import PatientDetail from "./pages/PatientDetail";
 import VisitDetail from "./pages/VisitDetail";
@@ -27,22 +28,19 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* Public route */}
+              {/* Public routes */}
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               
               {/* Protected routes with role-based access */}
               <Route 
                 path="/" 
-                element={
-                  <ProtectedRoute>
-                    <Navigate to="/dashboard" replace />
-                  </ProtectedRoute>
-                } 
+                element={<Index />}
               />
               <Route 
                 path="/dashboard" 
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['practitioner']}>
                     <Index />
                   </ProtectedRoute>
                 } 

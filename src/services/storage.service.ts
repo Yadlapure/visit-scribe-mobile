@@ -1,4 +1,3 @@
-
 import { Preferences } from '@capacitor/preferences';
 import { Patient, Visit, VisitStatus } from '../types';
 
@@ -118,7 +117,7 @@ export class StorageService {
       const demoVisits: Visit[] = [
         {
           id: "visit-1",
-          patientId: patients[0].id,
+          patientId: "patient-1",
           visitDate: today,
           status: VisitStatus.PENDING
         }

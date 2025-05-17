@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,8 +13,21 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else if (user.role === 'practitioner') {
+        navigate('/dashboard');
+      } else if (user.role === 'client') {
+        navigate('/client');
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +38,6 @@ const Login = () => {
       
       if (success) {
         toast.success('Login successful');
-        navigate('/');
       } else {
         toast.error('Invalid email or password');
       }
@@ -92,12 +104,21 @@ const Login = () => {
             >
               {loading ? 'Signing In...' : 'Sign In'}
             </Button>
+
+            <div className="text-center mt-4">
+              <p className="text-sm text-muted-foreground">
+                Don't have an account?{" "}
+                <Link to="/register" className="text-healthcare-primary hover:underline">
+                  Register here
+                </Link>
+              </p>
+            </div>
             
             <div className="mt-4 space-y-2">
               <div className="text-sm text-center text-muted-foreground">
                 Demo Accounts:
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-3 gap-2 text-xs">
                 <div className="border rounded p-2">
                   <strong>Admin:</strong><br />
                   admin@example.com<br />
@@ -107,6 +128,11 @@ const Login = () => {
                   <strong>Practitioner:</strong><br />
                   doctor@example.com<br />
                   doctor123
+                </div>
+                <div className="border rounded p-2">
+                  <strong>Client:</strong><br />
+                  patient@example.com<br />
+                  patient123
                 </div>
               </div>
             </div>

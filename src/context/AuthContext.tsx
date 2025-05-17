@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { StorageService } from '@/services/storage.service';
+import { v4 as uuidv4 } from 'uuid';
 
 type UserRole = 'admin' | 'practitioner' | 'client';
 
@@ -17,6 +18,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  register: (name: string, email: string, mobile: string, password: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,7 +26,8 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   loading: true,
   login: async () => false,
-  logout: () => {}
+  logout: () => {},
+  register: async () => false
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -37,6 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const loadUser = async () => {
       try {
+        await StorageService.initializeDemoData();
         const storedUser = await StorageService.getCurrentUser();
         if (storedUser) {
           setUser(storedUser);
@@ -72,6 +76,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Register function
+  const register = async (name: string, email: string, mobile: string, password: string): Promise<boolean> => {
+    try {
+      const users = await StorageService.getUsers();
+      
+      // Check if email already exists
+      const emailExists = users.some(u => u.email.toLowerCase() === email.toLowerCase());
+      if (emailExists) {
+        return false;
+      }
+
+      // Create new user
+      const newUser = {
+        id: `user-${uuidv4()}`,
+        name,
+        email,
+        password,
+        mobile,
+        role: 'client' as UserRole
+      };
+
+      // Add to users list
+      users.push(newUser);
+      await StorageService.setData('users', users);
+
+      // Log user in
+      const { password: _, ...userWithoutPassword } = newUser;
+      setUser(userWithoutPassword);
+      await StorageService.setCurrentUser(userWithoutPassword);
+      
+      return true;
+    } catch (error) {
+      console.error("Registration error:", error);
+      return false;
+    }
+  };
+
   // Logout function
   const logout = async () => {
     setUser(null);
@@ -84,7 +125,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAuthenticated: !!user,
       loading,
       login,
-      logout
+      logout,
+      register
     }}>
       {children}
     </AuthContext.Provider>
