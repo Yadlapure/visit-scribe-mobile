@@ -99,7 +99,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Add to users list
       users.push(newUser);
-      await StorageService.setData('users', users);
+      
+      // Use a method that would be available in the StorageService
+      // Instead of directly calling the private setData method
+      await StorageService.saveUsers(users);
 
       // Log user in
       const { password: _, ...userWithoutPassword } = newUser;

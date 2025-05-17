@@ -1,3 +1,4 @@
+
 import { Preferences } from '@capacitor/preferences';
 import { Patient, Visit, VisitStatus } from '../types';
 
@@ -68,6 +69,10 @@ export class StorageService {
   static async getUsers(): Promise<any[]> {
     const users = await this.getData('users');
     return users || [];
+  }
+
+  static async saveUsers(users: any[]): Promise<void> {
+    await this.setData('users', users);
   }
 
   static async getCurrentUser(): Promise<any | null> {
