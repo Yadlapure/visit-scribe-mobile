@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
+import AttendanceLogPage from "./pages/AttendanceLogPage";
 
 const App = () => {
   // Initialize QueryClient inside the component
@@ -42,6 +43,14 @@ const App = () => {
                 element={
                   <ProtectedRoute allowedRoles={['practitioner']}>
                     <Index />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/attendance" 
+                element={
+                  <ProtectedRoute allowedRoles={['practitioner']}>
+                    <AttendanceLogPage />
                   </ProtectedRoute>
                 } 
               />
